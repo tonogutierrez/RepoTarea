@@ -1,0 +1,234 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "API de Usuarios",
+    "description": "API para gestionar usuarios, permitiendo operaciones CRUD y autenticación.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:3000",
+  "schemes": ["http"],
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Obtener todos los usuarios",
+        "description": "Devuelve una lista con todos los usuarios registrados.",
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios obtenida correctamente",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Fer",
+                    "email": "fer@example.com"
+                  },
+                  {
+                    "id": 2,
+                    "name": "Carlos",
+                    "email": "carlos@example.com"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear un usuario",
+        "description": "Crea un nuevo usuario con un email y una contraseña segura.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "example": "Alumnos" },
+                "email": { "type": "string", "example": "AntonioLock@gmail.com" },
+                "password": { "type": "string", "example": "santos2008" }
+              },
+              "required": ["name", "email", "password"]
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Usuario creado exitosamente",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Usuario creado",
+                  "id": 3
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación en los datos",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Usuario no se pudo crear.",
+                  "detail": { "email": "El email no es válido" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Actualizar un usuario",
+        "description": "Modifica los datos de un usuario existente.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "example": 83 },
+                "name": { "type": "string", "example": "Antonio Actualizado" },
+                "email": { "type": "string", "example": "antoniogtzmirelesactualizado@example.com" }
+              },
+              "required": ["id", "name"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado correctamente",
+            "content": {
+              "application/json": {
+                "example": { "message": "Usuario actualizado correctamente" }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación en los datos",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Usuario no se pudo actualizar.",
+                  "detail": { "email": "El email ya está registrado" }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Usuario no se pudo actualizar.",
+                  "detail": { "id": "Usuario no encontrado" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "delete": {
+        "summary": "Eliminar un usuario",
+        "description": "Elimina un usuario existente por su ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del usuario a eliminar",
+            "schema": {
+              "type": "integer",
+              "example": 15
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario eliminado correctamente",
+            "content": {
+              "application/json": {
+                "example": { "message": "Usuario eliminado correctamente" }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Usuario no se pudo eliminar.",
+                  "detail": { "id": "Usuario no encontrado" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "Iniciar sesión",
+        "description": "Permite a un usuario iniciar sesión con su email y contraseña.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": { "type": "string", "example": "antoniogtzmireles@example.com" },
+                "password": { "type": "string", "example": "santos2008" }
+              },
+              "required": ["email", "password"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión exitoso",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Login exitoso",
+                  "user": {
+                    "id": 1,
+                    "name": "Antonio",
+                    "email": "antoniogtzmireles@example.com"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en la solicitud",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Error en la solicitud.",
+                  "detail": { "email": "El email es obligatorio" }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales incorrectas",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "No autorizado.",
+                  "detail": { "general": "Credenciales incorrectas" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
