@@ -5,6 +5,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/");
   };
@@ -20,6 +21,9 @@ const Navbar = () => {
         </Button>
         <Button color="inherit" component={Link} to="/contact">
           Contacto
+        </Button>
+        <Button color="inherit" component={Link} to="/users">
+          Usuarios
         </Button>
         <Button color="inherit" onClick={handleLogout}>
           Cerrar Sesión

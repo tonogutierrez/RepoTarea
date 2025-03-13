@@ -9,7 +9,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
-  const [apiError, setApiError] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // Guarda el mensaje del backend
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -17,33 +17,34 @@ const Login = () => {
     if (email.trim() !== "" && password.trim() !== "") {
       setLoading(true);
       setError(false);
-      setApiError("");
-  
+      setErrorMessage(""); // Limpiar mensaje previo
+
       try {
         const response = await axios.post(
           API_URL,
-          { email, password }, 
+          { email, password },
           { headers: { "Content-Type": "application/json" } }
         );
-  
+
         console.log("✅ API Response:", response.data);
-  
-        if (response.data && response.data.user) {
+
+        if (response.data && response.data.token) {
+          localStorage.setItem("token", response.data.token); //Guardo el token en el localStorage
           localStorage.setItem("user", JSON.stringify(response.data.user));
-          navigate("/dashboard"); 
+          navigate("/dashboard");
         }
       } catch (error) {
         console.error("🚨 Error en login:", error);
-  
+
+        let errorMsg = "⚠️ Error inesperado. Inténtalo más tarde.";
+
         if (error.response) {
-          if (error.response.status === 401) {
-            setApiError("❌ Credenciales incorrectas.");
-          } else {
-            setApiError(`⚠️ Error del servidor: ${error.response.data.message || "Inténtalo más tarde."}`);
-          }
+          errorMsg = error.response.data?.detail?.general || error.response.data?.error || errorMsg;
         } else {
-          setApiError("⚠️ No se pudo conectar al servidor.");
+          errorMsg = "⚠️ No se pudo conectar al servidor.";
         }
+
+        setErrorMessage(errorMsg);
       } finally {
         setLoading(false);
       }
@@ -51,7 +52,6 @@ const Login = () => {
       setError(true);
     }
   };
-  
 
   return (
     <Container maxWidth="sm" sx={{ mt: 10, textAlign: "center" }}>
@@ -59,7 +59,7 @@ const Login = () => {
         Iniciar Sesión
       </Typography>
 
-      {apiError && <Alert severity="error">{apiError}</Alert>}
+      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <TextField
         label="Correo Electrónico"
