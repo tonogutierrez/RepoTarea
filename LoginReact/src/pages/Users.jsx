@@ -12,11 +12,12 @@ import {
   DialogTitle,
   Button,
 } from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle"; //Ícono de confirmación
+import CheckCircleIcon from "@mui/icons-material/CheckCircle"; // Ícono de confirmación
 import axios from "axios";
-import Navbar from "../Components/NavBar";
+import Navbar from "../Components/Navbar";
 import UserMenu from "../Components/UserMenu";
 import { TableVirtuoso } from "react-virtuoso";
+import { useAuthStore } from "../store/useAuthStore"; // ✅ Importar Zustand
 
 const columns = [
   { width: 80, label: "ID", dataKey: "Id" },
@@ -36,28 +37,33 @@ const VirtuosoTableComponents = {
 };
 
 const Users = () => {
+  const { authUser } = useAuthStore(); // ✅ Obtener usuario autenticado desde Zustand
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false); //Para saber si cerrar o no la confirmacion
-  const [openSuccessDialog, setOpenSuccessDialog] = useState(false); //Success para mandar mensaje
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem("token");
+        console.log("🔍 Enviando solicitud con credenciales...");
+
         const response = await axios.get("http://localhost:3000/users", {
-          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true, // 🔥 Permite que el navegador envíe la cookie JWT automáticamente
         });
+
         setUsers(response.data.users);
       } catch (err) {
+        console.error("❌ Error al obtener los usuarios:", err);
         setError("Error al obtener los usuarios.");
       } finally {
         setLoading(false);
       }
     };
+
     fetchUsers();
   }, []);
 
@@ -72,14 +78,15 @@ const Users = () => {
 
   const handleDelete = async () => {
     try {
-      const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:3000/users/${selectedUser.Id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true, // 🔥 Permite que el navegador envíe la cookie JWT automáticamente
       });
+
       setUsers(users.filter((user) => user.Id !== selectedUser.Id));
       setOpenConfirmDialog(false);
       setOpenSuccessDialog(true);
     } catch (err) {
+      console.error("❌ Error al eliminar usuario:", err);
       setDeleteError("Error al eliminar el usuario.");
     }
   };

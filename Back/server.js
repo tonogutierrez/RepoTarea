@@ -1,54 +1,61 @@
-require('dotenv').config();
-const express = require('express');
-const mssql = require('mssql');
-const swaggerUi = require('swagger-ui-express');
-const cors = require('cors');
-const morgan = require('morgan');
-const fs = require('fs');
-const path = require('path');
+import express from "express";
+import cors from "cors";
+import mssql from "mssql";
+import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
+import morgan from "morgan";
+import fs from "fs";
+import cookieParser from "cookie-parser"; 
+import path from "path";
+import { app, server } from "./lib/socket.js";  
+import { connectDB } from "./config/db.js";  
+import http from "http";
 
-const app = express();
+import userRoutes from "./routes/users.js";
+import authRoutes from "./routes/login.js";
+import messageRoutes from "./routes/message.routes.js"; 
+
+dotenv.config();
+
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(express.json());
-app.use(cors());
-app.use(morgan('dev'));
+app.use(express.json({ limit: "50mb" })); // Aumenta el límite a 50MB
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(cookieParser()); 
 
-// Configurar conexión a SQL Server
-const dbConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    server: process.env.DB_SERVER,
-    database: process.env.DB_DATABASE,
-    options: {
-        encrypt: true,
-        trustServerCertificate: true
-    }
-};
+// Configuración CORS (ahora más completa)
+app.use(
+  cors({
+    origin: "http://localhost:5173", // URL del frontend
+    credentials: true, 
+  })
+);
+
+// ✅ IMPORTANTE: Manejar solicitudes preflight correctamente
+app.options("*", cors()); 
+
+app.use(morgan("dev"));
 
 // Conectar a la base de datos
-mssql.connect(dbConfig).then(pool => {
-    if (pool.connected) {
-        console.log('Conectado a la base de datos SQL Server');
-    }
-}).catch(err => console.error('Error de conexión:', err));
+connectDB().catch((err) => console.error("❌ Error conectando a SQL Server:", err));
 
-// Importar rutas
-const userRoutes = require('./routes/users');
-const authRoutes = require('./routes/login');
-
-app.use('/users', userRoutes);
-app.use('/login', authRoutes);
+// Usar rutas
+app.use("/users", userRoutes);
+app.use("/auth", authRoutes); 
+app.use("/messages", messageRoutes);
 
 // Documentación con Swagger
-const swaggerPath = path.join(__dirname, 'swagger.json'); // 📌 Asegura que el archivo esté en la raíz
-const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, 'utf8'));
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const swaggerPath = path.join(path.resolve(), "swagger.json");
+if (fs.existsSync(swaggerPath)) {
+    const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, "utf8"));
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    console.log("📄 Swagger disponible en: http://localhost:3000/api-docs");
+} else {
+    console.warn("⚠️ Swagger no encontrado. Asegúrate de tener `swagger.json` en la raíz.");
+}
 
-console.log('Swagger disponible en: http://localhost:3000/api-docs');
-
-// Iniciar servidor
-app.listen(port, () => {
-    console.log(`Servidor corriendo en http://localhost:${port}`);
+// Iniciar servidor con WebSockets
+server.listen(port, () => {
+    console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
 });

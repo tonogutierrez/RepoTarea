@@ -1,5 +1,5 @@
 import { Container, Typography, Box } from "@mui/material";
-import Navbar from "../Components/NavBar";
+import Navbar from "../Components/NavBar.jsx";
 import { useEffect, useState } from "react";
 
 const Contact = () => {

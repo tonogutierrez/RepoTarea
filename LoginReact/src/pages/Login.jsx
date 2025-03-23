@@ -1,101 +1,120 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Container, TextField, Button, Typography, Alert, CircularProgress } from "@mui/material";
-import axios from "axios";
+import { useAuthStore } from "../store/useAuthStore";
+import AuthImagePattern from "../Components/AuthImagePattern";
+import { Link } from "react-router-dom";
+import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare } from "lucide-react";
 
-const API_URL = "http://localhost:3000/login"; // Ajustado al puerto correcto
+const LoginPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  }); 
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); // Guarda el mensaje del backend
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const { login, isLoggingIn } = useAuthStore();
 
-  const handleLogin = async () => {
-    if (email.trim() !== "" && password.trim() !== "") {
-      setLoading(true);
-      setError(false);
-      setErrorMessage(""); // Limpiar mensaje previo
-
-      try {
-        const response = await axios.post(
-          API_URL,
-          { email, password },
-          { headers: { "Content-Type": "application/json" } }
-        );
-
-        console.log("✅ API Response:", response.data);
-
-        if (response.data && response.data.token) {
-          localStorage.setItem("token", response.data.token); //Guardo el token en el localStorage
-          localStorage.setItem("user", JSON.stringify(response.data.user));
-          navigate("/dashboard");
-        }
-      } catch (error) {
-        console.error("🚨 Error en login:", error);
-
-        let errorMsg = "⚠️ Error inesperado. Inténtalo más tarde.";
-
-        if (error.response) {
-          errorMsg = error.response.data?.detail?.general || error.response.data?.error || errorMsg;
-        } else {
-          errorMsg = "⚠️ No se pudo conectar al servidor.";
-        }
-
-        setErrorMessage(errorMsg);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setError(true);
-    }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    login(formData);
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 10, textAlign: "center" }}>
-      <Typography variant="h4" gutterBottom>
-        Iniciar Sesión
-      </Typography>
+    <div className="h-screen grid lg:grid-cols-2">
+      {/* Left Side - Form */}
+      <div className="flex flex-col justify-center items-center p-6 sm:p-12">
+        <div className="w-full max-w-md space-y-8">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <div className="flex flex-col items-center gap-2 group">
+              <div
+                className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20
+              transition-colors"
+              >
+                <MessageSquare className="w-6 h-6 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold mt-2">Welcome Back</h1>
+              <p className="text-base-content/60">Sign in to your account</p>
+            </div>
+          </div>
 
-      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">Email</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-base-content/40" />
+                </div>
+                <input
+                  type="email"
+                  className={`input input-bordered w-full pl-10`}
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
+            </div>
 
-      <TextField
-        label="Correo Electrónico"
-        type="email"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        error={error && email.trim() === ""}
-        helperText={error && email.trim() === "" ? "Campo requerido" : ""}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">Password</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-base-content/40" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className={`input input-bordered w-full pl-10`}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-base-content/40" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-base-content/40" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="btn btn-primary w-full" disabled={isLoggingIn}>
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Sign in"
+              )}
+            </button>
+          </form>
+
+          <div className="text-center">
+            <p className="text-base-content/60">
+              Don&apos;t have an account?{" "}
+              <Link to="/signup" className="link link-primary">
+                Create account
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Image/Pattern */}
+      <AuthImagePattern
+        title={"Welcome back!"}
+        subtitle={"Sign in to continue your conversations and catch up with your messages."}
       />
-
-      <TextField
-        label="Contraseña"
-        type="password"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        error={error && password.trim() === ""}
-        helperText={error && password.trim() === "" ? "Campo requerido" : ""}
-      />
-
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleLogin}
-        sx={{ mt: 2 }}
-        disabled={loading}
-      >
-        {loading ? <CircularProgress size={24} /> : "Login"}
-      </Button>
-    </Container>
+    </div>
   );
 };
-
-export default Login;
+export default LoginPage;

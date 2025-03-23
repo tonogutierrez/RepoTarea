@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Container, Typography } from "@mui/material";
-import Navbar from "../Components/NavBar";
+import Navbar from "../Components/Navbar";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import { createTheme } from "@mui/material/styles";

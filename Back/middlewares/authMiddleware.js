@@ -1,25 +1,19 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+import jwt from "jsonwebtoken";
 
-exports.verifyToken = (req, res, next) => {
-    const token = req.headers.authorization?.split(" ")[1];
-    console.log("Token recibido:", token);
+export const protect = (req, res, next) => {
+    const token = req.cookies?.jwt; 
 
     if (!token) {
-        return res.status(401).json({
-            error: "Acceso denegado",
-            detail: { general: "Token no proporcionado" }
-        });
+        console.log("❌ Token no encontrado en cookies.");
+        return res.status(401).json({ error: "No autorizado, token no encontrado" });
     }
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // Agrega los datos del usuario al request
+
+        req.user = decoded;
         next();
     } catch (err) {
-        return res.status(401).json({
-            error: "Acceso denegado",
-            detail: { general: "Token inválido o expirado" }
-        });
+        return res.status(401).json({ error: "Token inválido" });
     }
 };

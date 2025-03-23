@@ -1,8 +1,29 @@
-const express = require('express');
-const { loginUser } = require('../controllers/authController');
+import express from "express";
+import {
+    signup,        // Registrar usuario
+    login,         // Iniciar sesión
+    logout,        // Cerrar sesión
+    updateProfile, // Actualizar perfil
+    checkAuth      // Verificar autenticación
+} from "../controllers/authController.js";
+
+import { protect } from "../middlewares/authMiddleware.js"; // Middleware para proteger rutas
 
 const router = express.Router();
 
-router.post('/', loginUser);
+// 📌 Registro de usuario
+router.post("/signup", signup);
 
-module.exports = router;
+// 📌 Iniciar sesión
+router.post("/login", login);
+
+// 📌 Cerrar sesión
+router.post("/logout", logout);
+
+// 📌 Obtener información del usuario autenticado (protegido con JWT)
+router.get("/check", protect, checkAuth);
+
+// 📌 Actualizar perfil del usuario autenticado (protegido con JWT)
+router.put("/profile", protect, updateProfile);
+
+export default router;
